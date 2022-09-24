@@ -316,10 +316,10 @@ void Logger::addAppender(const string filename, LogLevel::Level level) {
     if (mAppends.find(filename) == mAppends.end()) {
         if (filename == "stdout") {
             mAppends.insert(
-                std::make_pair("stdout", LogAppender::ptr(new StdoutAppender)));
+                std::make_pair("stdout", LogAppender::ptr(new StdoutAppender(level))));
         } else {
             mAppends.insert(std::make_pair(
-                filename, LogAppender::ptr(new FileAppender(filename))));
+                filename, LogAppender::ptr(new FileAppender(filename, level))));
         }
     }
 }

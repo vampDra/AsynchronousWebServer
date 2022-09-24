@@ -5,7 +5,8 @@ namespace server {
 namespace http {
 
 ServletDispatch::ServletDispatch() {
-    mNotFound = std::make_shared<NotFoundServlet>();
+    mNotFound.reset(new NotFoundServlet);
+    mDatas["/"] = std::make_shared<DefaultServlet>();
 }
 
 int ServletDispatch::handle(HttpRequest::ptr req, HttpResponse::ptr res) {
@@ -15,6 +16,10 @@ int ServletDispatch::handle(HttpRequest::ptr req, HttpResponse::ptr res) {
 
 void ServletDispatch::addServlet(string uri, FuncServlet::callback cb) {
     mDatas[uri] = std::make_shared<FuncServlet>(cb);
+}
+
+void ServletDispatch::addServlet(string uri, Servlet::ptr slt) {
+    mDatas[uri] = slt;
 }
 
 Servlet::ptr ServletDispatch::getServlet(string uri) {
@@ -38,6 +43,19 @@ int NotFoundServlet::handle(HttpRequest::ptr req, HttpResponse::ptr res) {
     return 0;
 }
 
+int DefaultServlet::handle(HttpRequest::ptr req, HttpResponse::ptr res) {
+    res->setStatus((HttpStatus)200);
+    res->setVersion(req->getVersion());
+    res->setKeepAlive(req->isKeepAlive());
+    string body = 
+        "<html><head><title>Jerry han's Server"
+        "</title></head><body><center><h1>Welcome to JerryHan's server</h1></center>"
+        "<hr><center>Jerry Han</center></body></html>";
+    res->setBody(body);
+    res->addHeader("content-length", std::to_string(body.size()));
+    res->addHeader("content-type", "text/html");
+    return 0;
+}
 
 }
 }

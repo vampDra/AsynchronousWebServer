@@ -33,13 +33,6 @@ private :
     callback mCB;
 };
 
-class NotFoundServlet : public Servlet {
-public:
-    typedef std::shared_ptr<NotFoundServlet> ptr;
-    int handle(HttpRequest::ptr req, HttpResponse::ptr res) override;
-};
-
-
 class ServletDispatch : public Servlet{
 public:
     typedef std::shared_ptr<ServletDispatch> ptr;
@@ -47,15 +40,26 @@ public:
     ~ServletDispatch() = default;
     int handle(HttpRequest::ptr req, HttpResponse::ptr res) override;
     void addServlet(string uri, FuncServlet::callback cb);
+    void addServlet(string uri, Servlet::ptr slt);
     Servlet::ptr getServlet(string uri);
 private:
     std::unordered_map<string, Servlet::ptr> mDatas;
     Servlet::ptr mNotFound;
 };
 
+class NotFoundServlet : public Servlet {
+public:
+    typedef std::shared_ptr<NotFoundServlet> ptr;
+    int handle(HttpRequest::ptr req, HttpResponse::ptr res) override;
+};
+
+class DefaultServlet : public Servlet {
+public:
+    typedef std::shared_ptr<NotFoundServlet> ptr;
+    int handle(HttpRequest::ptr req, HttpResponse::ptr res) override;
+};
 
 }
 }
-
 
 #endif

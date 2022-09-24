@@ -80,7 +80,7 @@ private:
         : func(f), threadNum(num) {}
         Task() = default;
         void reset() {
-            fiber = nullptr, 
+            fiber.reset(), 
             func  = nullptr;
             threadNum = -1;
         }

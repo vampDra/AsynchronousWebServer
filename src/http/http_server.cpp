@@ -14,7 +14,7 @@ HttpServer::HttpServer(IOManager *accept, IOManager *worker)
 void HttpServer::handleClient(Socket::ptr sock) {
     while(true) {
         HttpRequestParser::ptr req_parser(new HttpRequestParser);
-        //读到解析完成 || 对端断开连接 || 出错则返回
+        //返回: 读到解析完成 || 对端断开连接 || 出错
         while(true) {
             char buf[1024];
             memset(buf, 0, sizeof buf);
