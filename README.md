@@ -1,5 +1,5 @@
 # multi-thread-Server
-Linux WebServer，enclosure fiber by ucontext_t and realize Asynchronous IO via fiber.
+c++编写的Linux多线程服务器，通过ucontext_t封装协程，并通过协程封装异步socket。
 
 
 ## 构建项目
