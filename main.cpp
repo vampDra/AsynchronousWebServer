@@ -13,7 +13,7 @@ void test() {
 
 int main(int argc, char **argv) {
     if(argc >= 2) {
-        port = atoi(argv[1]);
+        port = atoi(argv[2]);
     }
     
     log->addAppender("stdout", server::LogLevel::INFO);
