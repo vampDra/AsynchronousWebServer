@@ -19,10 +19,10 @@ IOManager::Event::EventCtx &IOManager::Event::getEvent(uint32_t ev) {
 void IOManager::Event::triggerEvent(uint32_t ev) {
     event = event & ~ev;        //去除当次任务
     EventCtx& ctx = getEvent(ev);
-    if (ctx.cb) {
+    if (ctx.fiber) {
+        IOManager::getCurIOManager()->addTask(ctx.fiber, ctx.fiber->getThread());
+    } else if (ctx.cb) {
         IOManager::getCurIOManager()->addTask(ctx.cb);
-    } else if (ctx.fiber) {
-        IOManager::getCurIOManager()->addTask(ctx.fiber);
     }
 }
 

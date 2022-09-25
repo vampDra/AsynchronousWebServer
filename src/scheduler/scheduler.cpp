@@ -95,9 +95,9 @@ void Scheduler::threadFunc() {
         //执行体为函数，构建新协程处理
         else if(task->func) {
             if(!cbfiber) {
-                cbfiber.reset(new Fiber(task->func));
+                cbfiber.reset(new Fiber(task->func, 1024 * 1024, task->threadNum));
             } else {
-                cbfiber->reset(task->func);
+                cbfiber->reset(task->func, task->threadNum);
             }
             cbfiber->resume();
             if(cbfiber->getState() == Fiber::HOLD) {

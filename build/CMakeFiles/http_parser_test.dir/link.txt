@@ -1,0 +1,1 @@
+/usr/bin/c++   -g -Wall -pthread   CMakeFiles/http_parser_test.dir/test/http_parser_test.cpp.o  -o ../bin/http_parser_test  -Wl,-rpath,/home/jerryhan/multi-thread-Server/lib ../lib/libserver.so -ldl -lpthread 

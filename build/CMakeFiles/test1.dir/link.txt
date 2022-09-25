@@ -1,0 +1,1 @@
+/usr/bin/c++   -g -Wall -pthread   CMakeFiles/test1.dir/test/test_file1.cpp.o  -o ../bin/test1  -Wl,-rpath,/home/jerryhan/multi-thread-Server/lib ../lib/libserver.so -ldl -lpthread 

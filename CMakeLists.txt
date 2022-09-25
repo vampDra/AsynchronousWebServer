@@ -39,8 +39,7 @@ set(SRC src/lock/lock.cpp
         src/http/http_parser.cpp
         src/http/http11_parser.cpp
         src/http/http_server.cpp
-        src/http/http_servlet.cpp
-        src/http/test_server.cpp)
+        src/http/http_servlet.cpp)
 
 add_library(server SHARED ${SRC})
 
@@ -51,7 +50,7 @@ set(LIBS server
 
 # main 
 
-add_executable(main main.cpp)
+add_executable(main main.cpp config.cpp)
 target_link_libraries(main ${LIBS})
 
 #测试文件
@@ -78,9 +77,6 @@ target_link_libraries(http_server_test ${LIBS})
 
 add_executable(tcp_server_test test/tcp_server_test.cpp)
 target_link_libraries(tcp_server_test ${LIBS})
-
-add_executable(test_server test/test_server_test.cpp)
-target_link_libraries(test_server ${LIBS})
 
 add_executable(test1 test/test_file1.cpp)
 target_link_libraries(test1 ${LIBS})

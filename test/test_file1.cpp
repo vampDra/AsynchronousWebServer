@@ -5,9 +5,8 @@ server::Logger::ptr log = GET_LOG_INSTANCE;
 void test(int i) {
     for(int i = 0; i < 1000; i++) {
     }
-    // server::Fiber::yieldToHold();
-    server::IOManager::getCurIOManager()->addTask(server::Fiber::getCurFiber());
-    server::Fiber::getCurFiber()->yield();
+    // server::IOManager::getCurIOManager()->addTask(server::Fiber::getCurFiber());
+    server::Fiber::yieldToHold();
     for(int i = 0; i < 1000; i++) {
     }
     printf("%d\n", i);

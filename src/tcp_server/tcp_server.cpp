@@ -5,8 +5,11 @@ namespace server {
 
 Logger::ptr tcpserverLogger = GET_LOG_INSTANCE;
 
-TcpServer::TcpServer(IOManager *accept, IOManager *worker)
-: mAcceptor(accept), mWorker(worker), mIsStop(true) {
+TcpServer::TcpServer(int thread_cnt, IOManager *accept, IOManager *worker)
+: mAcceptor(accept)
+, mWorker(worker)
+, mIsStop(true)
+, mThreadCnt(thread_cnt) {
     mLisSock = Socket::createTcp();
 }
 
@@ -35,6 +38,7 @@ void server::TcpServer::stop() {
 }
 
 void server::TcpServer::handleAccept() {
+    int rdrb = -1;
     Socket::ptr newClient;
     while(!mIsStop) {
         newClient.reset();
@@ -43,7 +47,7 @@ void server::TcpServer::handleAccept() {
             continue;
         }
         LOG_DEBUG(tcpserverLogger) << "new connection comming";
-        mWorker->addTask(std::bind(&TcpServer::handleClient, shared_from_this(), newClient));
+        mWorker->addTask(std::bind(&TcpServer::handleClient, shared_from_this(), newClient), (++rdrb) % mThreadCnt);
     }
     mLisSock->close();
 }

@@ -6,8 +6,8 @@ namespace http {
 
 Logger::ptr logger = GET_LOG_INSTANCE;
 
-HttpServer::HttpServer(IOManager *accept, IOManager *worker)
-: TcpServer(accept, worker) {
+HttpServer::HttpServer(int thread_cnt, IOManager *accept, IOManager *worker)
+: TcpServer(thread_cnt, accept, worker) {
     mDispatch.reset(new ServletDispatch);
 }
 
@@ -42,12 +42,12 @@ void HttpServer::handleClient(Socket::ptr sock) {
             ssize_t n = sock->send(send_buf.c_str() + offset, send_buf.size() - offset);
             offset += n;
         }
-        if(!sock->isConnect()) {
+        if(!sock->isConnect() || !req->isKeepAlive()) {
+            sock->close();
             break;
         }
     }
 }
-
 
 }
 }

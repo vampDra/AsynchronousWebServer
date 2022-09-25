@@ -1,0 +1,1 @@
+/usr/bin/c++   -g -Wall -pthread   CMakeFiles/iom_test.dir/test/iom_test.cpp.o  -o ../bin/iom_test  -Wl,-rpath,/home/jerryhan/multi-thread-Server/lib ../lib/libserver.so -ldl -lpthread 
