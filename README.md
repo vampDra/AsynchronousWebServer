@@ -28,6 +28,6 @@ make
 
 ![图片](https://github.com/vampDra/multi-thread-Server/blob/main/%E5%8E%8B%E6%B5%8B%E7%BB%93%E6%9E%9C/long_connect.jpg)
 
-短连接： 14000+ QPS
+短连接： 15000 QPS
 
 ![图片](https://github.com/vampDra/multi-thread-Server/blob/main/%E5%8E%8B%E6%B5%8B%E7%BB%93%E6%9E%9C/short_connect.jpg)
