@@ -1,1 +1,0 @@
-/usr/bin/c++   -g -Wall -pthread   CMakeFiles/hook_test.dir/test/hook_test.cpp.o  -o ../bin/hook_test  -Wl,-rpath,/home/jerryhan/multi-thread-Server/lib ../lib/libserver.so -ldl -lpthread 

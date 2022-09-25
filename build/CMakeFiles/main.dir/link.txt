@@ -1,1 +1,0 @@
-/usr/bin/c++   -g -Wall -pthread   CMakeFiles/main.dir/main.cpp.o CMakeFiles/main.dir/config.cpp.o  -o ../bin/main  -Wl,-rpath,/home/jerryhan/multi-thread-Server/lib ../lib/libserver.so -ldl -lpthread 

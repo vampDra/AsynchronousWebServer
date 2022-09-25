@@ -1,1 +1,0 @@
-/usr/bin/c++   -g -Wall -pthread   CMakeFiles/scheduler_test.dir/test/scheduler_test.cpp.o  -o ../bin/scheduler_test  -Wl,-rpath,/home/jerryhan/multi-thread-Server/lib ../lib/libserver.so -ldl -lpthread 

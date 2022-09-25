@@ -1,1 +1,0 @@
-/usr/bin/c++   -g -Wall -pthread   CMakeFiles/fiber_test.dir/test/fiber_test.cpp.o  -o ../bin/fiber_test  -Wl,-rpath,/home/jerryhan/multi-thread-Server/lib ../lib/libserver.so -ldl -lpthread 
