@@ -22,12 +22,25 @@ make
 ## 压测结果
 机器： i5-7300hq(4核心) 16G
 
-测试： 通过ab压测 10万请求 200负载 4线程处理。
+测试： 
+- 通过ab压测 10万请求 200负载 4线程处理。
 
-长连接： 59000+ QPS
+  - 长连接： 66000+ QPS
 
-![图片](https://github.com/vampDra/multi-thread-Server/blob/main/%E5%8E%8B%E6%B5%8B%E7%BB%93%E6%9E%9C/long_connect.jpg)
+  - 短连接： 25000+ QPS
 
-短连接： 15000 QPS
+- webbench测试: 5秒 200负载
 
-![图片](https://github.com/vampDra/multi-thread-Server/blob/main/%E5%8E%8B%E6%B5%8B%E7%BB%93%E6%9E%9C/short_connect.jpg)
+  - 14.2w / 5 QPS
+
+长连接：
+
+![图片](https://github.com/vampDra/multi-thread-Server/blob/main/%E5%8E%8B%E6%B5%8B%E7%BB%93%E6%9E%9C/long_connection.jpg)
+
+短连接：
+
+![图片](https://github.com/vampDra/multi-thread-Server/blob/main/%E5%8E%8B%E6%B5%8B%E7%BB%93%E6%9E%9C/short_connection.jpg)
+
+Webbench:
+
+![图片](https://github.com/vampDra/multi-thread-Server/blob/main/%E5%8E%8B%E6%B5%8B%E7%BB%93%E6%9E%9C/webbench.jpg)
