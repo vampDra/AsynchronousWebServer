@@ -17,7 +17,7 @@ class TcpServer :
     public std::enable_shared_from_this<TcpServer> {
 public:
     typedef std::shared_ptr<TcpServer> ptr;
-    TcpServer (int thread_cnt, IOManager *accept = IOManager::getCurIOManager(), IOManager *worker = IOManager::getCurIOManager());
+    TcpServer (IOManager *accept = IOManager::getCurIOManager(), IOManager *worker = IOManager::getCurIOManager());
     bool bind (Address::ptr& addr);
     void start();
     void stop ();
@@ -30,7 +30,6 @@ protected:
     IOManager *mAcceptor;
     IOManager *mWorker;
     bool mIsStop;
-    int  mThreadCnt;
 };
 
 

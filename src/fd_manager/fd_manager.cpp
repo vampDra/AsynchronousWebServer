@@ -45,37 +45,50 @@ int FdCtx::getTimeOut(int type) {
 
 FdManager::ptr FdManager::fdManager(new FdManager);
 
-
-void FdManager::add(int fd) {
-    mLock.lock();
-    if(mCtxs.find(fd) == mCtxs.end()) {
-        mCtxs[fd] = FdCtx::ptr(new FdCtx(fd));
-    }
-    mLock.unlock();
+FdManager::FdManager() {
+    mCtxs.resize(64);
 }
+
+// void FdManager::add(int fd) {
+//     mLock.lock();
+//     if(mCtxs.find(fd) == mCtxs.end()) {
+//         mCtxs[fd] = FdCtx::ptr(new FdCtx(fd));
+//     }
+//     mLock.unlock();
+// }
 
 void FdManager::del(int fd) {
-    mLock.lock();
-    if(mCtxs.find(fd) != mCtxs.end()) {
-        mCtxs.erase(fd);
+    LockGuard lock(mLock);
+    if((int)mCtxs.size() <= fd) {
+        return;
     }
-    mLock.unlock();
+    mCtxs[fd].reset();
 }
 
-FdCtx::ptr FdManager::get(int fd) {
-    mLock.lock();
-    if(mCtxs.find(fd) == mCtxs.end()) {
-        mLock.unlock();
+FdCtx::ptr FdManager::get(int fd, bool auto_create) {
+    if(fd == -1) {
         return nullptr;
-    } else {
-        mLock.unlock();
-        return mCtxs[fd];
     }
+    LockGuard lock(mLock);
+    if((int)mCtxs.size() <= fd) {
+        if(auto_create == false) {
+            return nullptr;
+        }
+    } else {
+        if(mCtxs[fd] || !auto_create) {
+            return mCtxs[fd];
+        }
+    }
+    FdCtx::ptr ctx(new FdCtx(fd));
+    if(fd >= (int)mCtxs.size()) {
+        mCtxs.resize(fd * 1.5);
+    }
+    mCtxs[fd] = ctx;
+    return ctx;
 }
 
 FdManager::ptr& FdManager::getInstance() {
     return fdManager;
 }
-
 
 }

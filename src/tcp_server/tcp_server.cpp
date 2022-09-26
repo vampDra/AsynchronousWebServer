@@ -1,15 +1,16 @@
 #include "tcp_server.h"
+#include <fcntl.h>
+#include "http11_parser.h"
 
 
 namespace server {
 
 Logger::ptr tcpserverLogger = GET_LOG_INSTANCE;
 
-TcpServer::TcpServer(int thread_cnt, IOManager *accept, IOManager *worker)
+TcpServer::TcpServer(IOManager *accept, IOManager *worker)
 : mAcceptor(accept)
 , mWorker(worker)
-, mIsStop(true)
-, mThreadCnt(thread_cnt) {
+, mIsStop(true) {
     mLisSock = Socket::createTcp();
 }
 
@@ -38,7 +39,6 @@ void server::TcpServer::stop() {
 }
 
 void server::TcpServer::handleAccept() {
-    int rdrb = -1;
     Socket::ptr newClient;
     while(!mIsStop) {
         newClient.reset();
@@ -47,7 +47,7 @@ void server::TcpServer::handleAccept() {
             continue;
         }
         LOG_DEBUG(tcpserverLogger) << "new connection comming";
-        mWorker->addTask(std::bind(&TcpServer::handleClient, shared_from_this(), newClient), (++rdrb) % mThreadCnt);
+        mWorker->addTask(std::bind(&TcpServer::handleClient, shared_from_this(), newClient));
     }
     mLisSock->close();
 }
@@ -63,24 +63,25 @@ void server::TcpServer::handleClient(Socket::ptr sock) {
                 LOG_ERROR(tcpserverLogger) << "close error "
                     << ", errno = " << errno << ", " << strerror(errno);
             }
-            break;
+            sock->close();
+            return;
         }
         else if (len < 0) {
             LOG_ERROR(tcpserverLogger) << "recv error "
                                        << ", errno = " << errno << ", " << strerror(errno);
             sock->close();
-            break;
+            return;
         }
         else {
-            ssize_t len = sock->send(buf, strlen(buf));
-            if(len != (ssize_t)strlen(buf)) {
+            string sendbuf = "HTTP/1.0 200 OK\r\nconnection:keep-alive\r\n\r\n";
+            ssize_t len = sock->send(sendbuf.c_str(), strlen(sendbuf.c_str()));
+            if(len != (ssize_t)strlen(sendbuf.c_str())) {
                 LOG_ERROR(tcpserverLogger) << "send error "
                                            << ", errno = " << errno << ", " << strerror(errno);
-                // sock->close();
             }
+        // sock->close();
         }
     }
 }
-
 
 }

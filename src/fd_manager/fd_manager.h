@@ -7,7 +7,6 @@
 #include <vector>
 #include <sys/stat.h>
 
-
 namespace server {
 
 class FdCtx {
@@ -17,11 +16,11 @@ public:
     ~FdCtx();
     void init();
     bool IsClose () {return isClose;}
+    void setClose() {isClose = true;}
     bool IsSocket() {return isSocket;}
     bool IsNonBlock() {return isNonBlock;}
     void setTimeOut(int type, uint32_t t);
     int  getTimeOut(int type);      //0 recv, 1 send
-    void setClose() {isClose = true;}
 private:
     int mfd;
     int mRecvTimeOut;
@@ -34,19 +33,16 @@ private:
 class FdManager {
 public:
     typedef std::shared_ptr<FdManager> ptr;
-    void add(int fd);
+    FdCtx::ptr get(int fd, bool auto_create = false);
     void del(int fd);
-    FdCtx::ptr get(int fd);
     static FdManager::ptr& getInstance();
     static FdManager::ptr fdManager;
 private:
-    FdManager() = default;
+    FdManager();
     Mutex mLock;
-    std::unordered_map<int, FdCtx::ptr> mCtxs;
+    std::vector<FdCtx::ptr> mCtxs;
 };
 
-
 }
-
 
 #endif

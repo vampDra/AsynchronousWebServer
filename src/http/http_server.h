@@ -19,7 +19,7 @@ namespace http {
 class HttpServer : public TcpServer {
 public:
     typedef std::shared_ptr<HttpServer> ptr;
-    HttpServer (int thread_cnt, IOManager *accept = IOManager::getCurIOManager(), IOManager *worker = IOManager::getCurIOManager());
+    HttpServer (IOManager *accept = IOManager::getCurIOManager(), IOManager *worker = IOManager::getCurIOManager());
     ~HttpServer() = default;
     void addServlet(std::string uri, FuncServlet::callback cb);
 private:

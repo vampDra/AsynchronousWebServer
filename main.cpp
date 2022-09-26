@@ -6,7 +6,7 @@ int port = 10000;
 int thread_num = 4;
 
 void test() {
-    server::http::HttpServer::ptr http_server(new server::http::HttpServer(thread_num));
+    server::http::HttpServer::ptr http_server(new server::http::HttpServer);
     server::Address::ptr addr(new server::Address("0", port));
     http_server->bind(addr);
     http_server->start();

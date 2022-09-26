@@ -6,8 +6,8 @@ namespace http {
 
 Logger::ptr logger = GET_LOG_INSTANCE;
 
-HttpServer::HttpServer(int thread_cnt, IOManager *accept, IOManager *worker)
-: TcpServer(thread_cnt, accept, worker) {
+HttpServer::HttpServer(IOManager *accept, IOManager *worker)
+: TcpServer(accept, worker) {
     mDispatch.reset(new ServletDispatch);
 }
 

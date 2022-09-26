@@ -5,6 +5,7 @@ namespace server {
 
 Logger::ptr& scheduleLogger = GET_LOG_INSTANCE;
 Scheduler* curScheduler = nullptr;
+static thread_local Fiber* mainFiber;
 
 Scheduler::Scheduler(int threadCnt) : mThreadCnt(threadCnt) {
     if(mThreadCnt < 1) mThreadCnt = 1;
@@ -18,6 +19,10 @@ Scheduler::~Scheduler() {
 
 Scheduler* Scheduler::getCurScheduler() {
     return curScheduler;
+}
+
+Fiber* Scheduler::getMainFiber() {
+    return mainFiber;
 }
 
 void Scheduler::start() {
@@ -58,8 +63,8 @@ void Scheduler::stop() {
 }
 
 void Scheduler::threadFunc() {
-    Task::ptr task(new Task());       //暂存当前执行任务
-    Fiber::ptr mainf = Fiber::getCurFiber();        //创建线程主协程
+    Task::ptr task(new Task());                    //暂存当前执行任务
+    mainFiber = Fiber::getCurFiber().get();        //创建线程主协程
     Fiber::ptr idleFiber(new Fiber(std::bind(&Scheduler::idle, this), 1024 * 1024));    //空闲协程
     Fiber::ptr cbfiber = nullptr;
     while(true) {
@@ -74,6 +79,9 @@ void Scheduler::threadFunc() {
                     isTrickle |= true;
                     continue;
                 }
+                if((*it)->fiber != nullptr && (*it)->fiber->getState() == Fiber::EXEC) {
+                    continue;
+                }
                 task = *it;
                 mTasks.erase(it);
                 ++mActiveCnt;
@@ -84,25 +92,20 @@ void Scheduler::threadFunc() {
         }
         if(isTrickle) trickle();
         // 执行体为协程，这里要约定好，如果是中途yield，是协程函数自己添加还是调度器帮忙添加，
-        // 我这里是调度器帮忙添加
         if(task->fiber) {
             task->fiber->resume();
-            if(task->fiber->getState() == Fiber::HOLD) {
-                addTask(task->fiber, task->threadNum);
-            }
             --mActiveCnt;
+            task->reset();
         }
         //执行体为函数，构建新协程处理
         else if(task->func) {
             if(!cbfiber) {
-                cbfiber.reset(new Fiber(task->func, 1024 * 1024, task->threadNum));
+                cbfiber.reset(new Fiber(task->func, 1024 * 1024));
             } else {
-                cbfiber->reset(task->func, task->threadNum);
+                cbfiber->reset(task->func);
             }
+            task->reset();
             cbfiber->resume();
-            if(cbfiber->getState() == Fiber::HOLD) {
-                addTask(cbfiber, task->threadNum);
-            }
             cbfiber.reset();
             --mActiveCnt;
         }

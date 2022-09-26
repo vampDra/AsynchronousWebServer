@@ -23,7 +23,7 @@ public:
     void start();                    //启动调度器，创建线程
     void stop ();
     static Scheduler* getCurScheduler();
-
+    static Fiber* getMainFiber();
     template<class task>
     void addTask(task t, int threadNum = -1) {
         bool isNull;

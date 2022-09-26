@@ -1,6 +1,5 @@
 #include "hook.h"
 
-
 namespace server {
 
 #define RECV 0
@@ -47,13 +46,18 @@ static ssize_t io_func(int fd, uint32_t event, OriginFun func, int type, Args&&.
 {
     //处理特殊情况，不存在or不是socket
     server::FdCtx::ptr ctx = server::FdManager::getInstance()->get(fd);
-    if(!ctx || !ctx->IsSocket()) {
+    if(!ctx) {
         return func(fd, std::forward<Args>(args)...);
     }
     if(ctx->IsClose()) {
         errno = EBADF;
         return -1;
     }
+    if(!ctx->IsSocket()) {
+        return func(fd, std::forward<Args>(args)...);
+    }
+    int to = ctx->getTimeOut(type);
+
 Retry:
     ssize_t n = func(fd, std::forward<Args>(args)...);
     //读到数据则返回，否则通过定时器 and 协程异步挂起
@@ -63,7 +67,6 @@ Retry:
     //内核无数据，挂起等待响应or定时器到期
     if(n == -1 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
         int cancel = 0;
-        int to = ctx->getTimeOut(type);
         server::IOManager* iom = server::IOManager::getCurIOManager();
         server::Timer::ptr timer;
         //有超时时间，则添加定时器，定时器到期还无数据到来则关闭连接
@@ -75,7 +78,7 @@ Retry:
         }
         iom->addEvent(fd, event);
         //让出协程执行
-        server::Fiber::getCurFiber()->yield();
+        server::Fiber::yieldToHold();
         if(timer) {
             iom->delTimer(timer);
         }
@@ -108,14 +111,14 @@ int socket(int domain, int type, int protocol) {
     if(fd == -1) {
         return fd;
     }
-    server::FdManager::getInstance()->add(fd);
+    server::FdManager::getInstance()->get(fd, true);
     return fd;
 }
 
 int accept(int s, struct sockaddr *addr, socklen_t *addrlen) {
     int fd = io_func(s, EPOLLIN, accept_f, RECV, addr, addrlen);
     if(fd >= 0) {
-        server::FdManager::getInstance()->add(fd);
+        server::FdManager::getInstance()->get(fd, true);
     }
     return fd;
 }

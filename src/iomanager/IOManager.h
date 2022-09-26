@@ -21,8 +21,8 @@ private:
     //event.ptr指向的结构体
     struct Event {
         struct EventCtx {
-            std::function<void()> cb = nullptr;
-            Fiber::ptr fiber = nullptr;
+            std::function<void()> cb;
+            Fiber::ptr fiber;
         };
         EventCtx& getEvent(uint32_t ev);   //获取事件
         void triggerEvent (uint32_t ev);   //向调度器添加任务
@@ -31,7 +31,7 @@ private:
         EventCtx write;                    //写事件
         EventCtx read;                     //读事件
         Mutex    lock;
-        int      fd = -1;                  
+        int      fd = 0;                  
     };
 public:
     typedef std::shared_ptr<IOManager> ptr;
@@ -56,6 +56,7 @@ private:
     int mEventCnt = 0;
     int mEpollfd  = 0;                  // epoll接口
     int mEventfd  = 0;                  //跨线程事件通知
+    int mSlotCnt;                       //时间轮槽数
     int mTickTime;                      //epoll_wait返回时间 && 定时器tick时间
     Mutex mLock;
 };

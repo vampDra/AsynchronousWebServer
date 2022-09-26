@@ -1,6 +1,5 @@
 #include "IOManager.h"
 
-
 namespace server {
 
 Logger::ptr& IOMLogger = GET_LOG_INSTANCE;
@@ -13,6 +12,7 @@ IOManager::Event::EventCtx &IOManager::Event::getEvent(uint32_t ev) {
             return write;
         default:
             LOG_ERROR(IOMLogger) << "event fault";
+            exit(1);
     }
 }
 
@@ -20,22 +20,24 @@ void IOManager::Event::triggerEvent(uint32_t ev) {
     event = event & ~ev;        //去除当次任务
     EventCtx& ctx = getEvent(ev);
     if (ctx.fiber) {
-        IOManager::getCurIOManager()->addTask(ctx.fiber, ctx.fiber->getThread());
+        IOManager::getCurIOManager()->addTask(ctx.fiber);
     } else if (ctx.cb) {
         IOManager::getCurIOManager()->addTask(ctx.cb);
     }
+    reset(ev);
 }
 
 void IOManager::Event::reset(uint32_t ev) {
     EventCtx &task = getEvent(ev);
-    task.fiber = nullptr;
+    task.fiber.reset();
     task.cb = nullptr;
 }
 
 IOManager::IOManager(int threadCnt, bool mainThrd, int slotnum, int ticktime)
 : Scheduler(threadCnt)
 , mUseMainThrd(mainThrd)
-, mTickTime(ticktime) {
+, mTickTime(ticktime)
+, mSlotCnt(slotnum) {
     mTimerManager = new TimerManager(slotnum, ticktime);
     mEpollfd = epoll_create(5);
     mEventfd = eventfd(0, EFD_NONBLOCK);
@@ -71,12 +73,14 @@ bool IOManager::stopping() {
 }
 
 void IOManager::ctxResize(int size) {
-    for(int i = mEventCnt; i < size; i++) {
-        Event *ev = new Event;
-        mEvents.emplace_back(ev);
-        mEvents[i]->fd = i, mEvents[i]->event = 0x000;
+    mEvents.resize(size);
+    for(int i = 0; i < mEvents.size(); i++) {
+        if(!mEvents[i]) {
+            mEvents[i] = new Event;
+            mEvents[i]->fd = i, mEvents[i]->event = 0;
+        }
     }
-    mEventCnt = size;
+    mEventCnt = mEvents.size();
 }
 
 void IOManager::addEvent(int fd, uint32_t event, std::function<void()> cb, int flag) {
@@ -86,6 +90,9 @@ void IOManager::addEvent(int fd, uint32_t event, std::function<void()> cb, int f
     }
     mLock.unlock();
     Event* task = mEvents[fd];
+    if(task->event & event) {
+        return;
+    }
 
     //挂上事件监听
     int op = task->event == 0 ? EPOLL_CTL_ADD : EPOLL_CTL_MOD;
@@ -96,6 +103,7 @@ void IOManager::addEvent(int fd, uint32_t event, std::function<void()> cb, int f
     if(rt) {
         LOG_ERROR(IOMLogger) << "epoll_ctl error,errno=" << errno << " " 
                              << strerror(errno) << ", fd=" << fd << ",op=" << op;
+        return;
     }
 
     task->lock.lock();
@@ -126,7 +134,6 @@ void IOManager::cancelEvent(int fd, uint32_t event) {
                                  << strerror(errno) << ", fd=" << fd << ",op=" << op;
         }
         task->triggerEvent(event);
-        task->reset(event);
     }
     task->lock.unlock();
 }
@@ -176,6 +183,9 @@ void IOManager::trickle() {
 void IOManager::idle() {
     const int waitCnt = 2048;
     epoll_event *eps = new epoll_event[waitCnt];
+    std::shared_ptr<epoll_event> shared_events(eps, [](epoll_event *ptr) {
+        delete[] ptr;
+    });
 
     int waitTime = mTickTime;       //epoll_wait时间间隔
     while(true) {
@@ -205,6 +215,7 @@ void IOManager::idle() {
                 }
                 //处理读写事件
                 Event *task = (Event*)event.data.ptr;
+                LockGuard lock(task->lock);
                 uint32_t realEvent = 0x000;
                 uint32_t leftEvent;
                 if(event.events & EPOLLIN) {
@@ -223,6 +234,7 @@ void IOManager::idle() {
                 if(rt) {
                     LOG_ERROR(IOMLogger) << "epoll_ctl error,errno=" << errno << " " 
                                          << strerror(errno) << ", fd=" << task->fd << ",op=" << op;
+                    continue;
                 }
 
                 if(realEvent & EPOLLIN) {
