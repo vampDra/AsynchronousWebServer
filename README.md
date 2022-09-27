@@ -1,23 +1,32 @@
-# multi-thread-Server
-c++编写的Linux多线程服务器，通过ucontext_t封装协程，并通过协程封装异步socket。
+# C++ 高性能后台服务器
 
+## Introduction
+- 本项目采用modern c++实现Linux下高性能后台服务器，通过`ucontext_t`自封装协程达到以写同步的方式获得异步socket的性能。
+- 项目包含日志系统、封装协程模块、协程调度模块、hook异步IO模块、定时器模块、服务器模块以及`http`等主要模块。
+- 项目参考了 [sylar-yin/sylar](https://github.com/sylar-yin/sylar) 并修复其多线程读写时由于协程切换bug出现的core dump.
+- http协议解析采用的是 [nodejs/http-parser](https://github.com/nodejs/http-parser)
 
-## 构建项目
+## Technical points(详细介绍见文件：模块详解)
+- 主并发模型为多线程Reactor，采用`eventfd`线程间通信。
+- 采用linux下`ucontext_t`结构体封装协程(`Fiber`模块)。
+- 设计协程调度器，采用非对称式设计实现协程切换(子协程仅能与主协程切换)，实现 线程 N：M 协程 调度(`scheduler`模块与`iomanager`模块)。
+- `epoll_wait`事件触发配合协程hook原始socket IO，以达到异步效果(`hook`模块与`fd_manager`模块)。
+- 封装`Tcp_server`，上层协议服务器可通过继承`Tcp_server`轻易实现(例如`http_server`)
+- 采用单层时间轮定时器配合`epoll_wait`超时参数实现毫秒级定时(`timer`模块)。
+- 单例模式实现流式日志系统，支持日志格式解析与标准输出、文件输出两种输出地设置(`logger`模块)。
+
+## Build
 ```
 mkdir build
 cd build
 cmake ..
 make
 ```
-最后生成的可执行文件在 ../bin/main
 
-
-## 使用说明
-默认端口号为10000， 线程数为4
+## Usage
 ```
 ./main [-p port] [-t thread_cnt]
 ```
-
 
 ## 压测结果
 机器： i5-7300hq(4核心) 16G
