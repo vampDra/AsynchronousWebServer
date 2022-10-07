@@ -7,7 +7,7 @@
 - http协议解析采用的是 [nodejs/http-parser](https://github.com/nodejs/http-parser)
 
 ## Technical points(详细介绍见文件：模块详解)
-- 主并发模型为多线程Reactor，采用eventfd线程间通信。
+- 主并发模型为多线程Proactor，采用eventfd线程间通信。
 - 采用linux下ucontext_t结构体封装协程(Fiber模块)。
 - 设计协程调度器，采用非对称式设计实现协程切换(子协程仅能与主协程切换)，实现 线程 N：M 协程 调度(scheduler模块与iomanager模块)。
 - epoll_wait事件触发配合协程hook原始socket IO，以达到异步效果(hook模块与fd_manager模块)。
