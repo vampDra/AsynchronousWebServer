@@ -40,6 +40,7 @@ Fiber::ptr Fiber::getCurFiber() {
 
     Fiber::ptr main_fiber(new Fiber);
     t_thread_fiber = main_fiber;
+    t_fiber = main_fiber.get();
     return t_fiber->shared_from_this();
 }
 
